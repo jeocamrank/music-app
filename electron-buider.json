@@ -1,0 +1,21 @@
+{
+    "appId": "Music-App",
+    "files": [
+        "dist-electron",
+        "dist-react"
+    ],
+    "icon": "./Icon.png",
+    "mac": {
+        "target": "dmg"
+    },
+    "linux": {
+        "target": "AppImage",
+        "category": "Utility"
+    },
+    "win": {
+        "target": [
+            "portable",
+            "msi"
+        ]
+    }
+}
