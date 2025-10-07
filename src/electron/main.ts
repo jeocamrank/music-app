@@ -10,15 +10,16 @@ app.on("ready", () => {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: false, // Thêm nếu chưa có (bypass security dev)
+      // Thêm: opener: null để tránh window opener issues
+      additionalArguments: process.env.NODE_ENV === 'development' ? ['--disable-web-security'] : [],
     },
   });
 
   if (isDev) {
-    // 🔥 Dev mode → load Vite server (Clerk sẽ nhận http://localhost:3000)
     mainWindow.loadURL("http://localhost:3000");
     mainWindow.webContents.openDevTools();
   } else {
-    // 🚀 Production → load file build React
     mainWindow.loadFile(path.join(app.getAppPath(), "dist-react/index.html"));
   }
 });
