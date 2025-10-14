@@ -4,6 +4,7 @@ import { axiosInstance } from "@/lib/axios";
 import { Loader } from "lucide-react";
 import type { ReactNode } from "react";
 import { auth } from "@/firebase/fire";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const updateApiToken = (token: string | null) => {
 	if (token) {
@@ -15,6 +16,7 @@ const updateApiToken = (token: string | null) => {
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [loading, setLoading] = useState(true);
+	const { checkAdminStatus } = useAuthStore();
 
 	useEffect(() => {
 		/**
@@ -26,13 +28,17 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 					// Lấy token từ Firebase
 					const token = await user.getIdToken();
 					updateApiToken(token);
+
+					if(token) {
+						await checkAdminStatus();
+					}
 				} else {
 					// Nếu user bị sign out
 					updateApiToken(null);
 				}
 			} catch (error) {
-				console.error("Error in AuthProvider:", error);
 				updateApiToken(null);
+				console.error("Error in AuthProvider:", error);
 			} finally {
 				setLoading(false);
 			}

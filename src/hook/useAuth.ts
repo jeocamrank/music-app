@@ -6,7 +6,6 @@ export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const auth = getAuth();
-
   useEffect(() => {
     // Lắng nghe thay đổi đăng nhập (login/logout)
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
