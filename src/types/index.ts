@@ -12,7 +12,7 @@ export interface Song {
 
 export interface Album {
     _id: string;
-    title: string; 
+    title: string;
     artist: string;
     imageUrl: string;
     releaseYear: number;
@@ -24,4 +24,20 @@ export interface Stats {
     totalAlbums: number;
     totalUsers: number;
     totalArtists: number;
+}
+
+export interface Message {
+    _id: string;
+    senderId: string;
+    receiverId: string;
+    content: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface User {
+    _id: string;
+    fireBaseUid: string;
+    fullName: string;
+    imageUrl: string;
 }

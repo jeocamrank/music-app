@@ -5,6 +5,7 @@ import { Loader } from "lucide-react";
 import type { ReactNode } from "react";
 import { auth } from "@/firebase/fire";
 import { useAuthStore } from "@/stores/useAuthStore";
+import { useChatStore } from "@/stores/useChatStore";
 
 const updateApiToken = (token: string | null) => {
 	if (token) {
@@ -16,7 +17,8 @@ const updateApiToken = (token: string | null) => {
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [loading, setLoading] = useState(true);
-	const { checkAdminStatus } = useAuthStore();
+	const { checkAdminStatus, setUser } = useAuthStore();
+	const { initSocket, disconnectSocket } = useChatStore();
 
 	useEffect(() => {
 		/**
@@ -26,15 +28,25 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 			try {
 				if (user) {
 					// Lấy token từ Firebase
+					setUser({
+						_id: user.uid,
+						fireBaseUid: user.uid,
+						fullName: user.displayName || "",
+						imageUrl: user.photoURL || "",
+					});
+					console.log("User: ", user)
 					const token = await user.getIdToken();
 					updateApiToken(token);
 
-					if(token) {
+					if (token) {
 						await checkAdminStatus();
+						// init socket
+						if (user.uid) initSocket(user.uid);
 					}
 				} else {
 					// Nếu user bị sign out
 					updateApiToken(null);
+					disconnectSocket();
 				}
 			} catch (error) {
 				updateApiToken(null);
@@ -47,8 +59,9 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 		// Cleanup khi component unmount
 		return () => {
 			unsubscribe();
+			disconnectSocket();
 		};
-	}, [auth]);
+	}, [auth, checkAdminStatus, initSocket, disconnectSocket, setUser]);
 
 	if (loading) {
 		return (
