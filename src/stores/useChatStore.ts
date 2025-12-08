@@ -115,10 +115,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
     sendMessage: async (receiverId, senderId, content) => {
         const socket = get().socket;
-        console.log("1. sendMessage được gọi với:", { receiverId, senderId, content });
 
         if (!socket) return;
-        console.log("2. Socket đang emit sự kiện 'send_message'");
         socket.emit("send_message", { receiverId, senderId, content });
     },
 

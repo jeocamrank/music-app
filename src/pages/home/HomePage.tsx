@@ -26,7 +26,7 @@ const HomePage = () => {
   }, [fetchFeaturedSongs, fetchMadeForYouSongs, fetchTrendingSongs]);
 
   useEffect(() => {
-    if(madeForYouSongs.length > 0 && featuredSongs.length > 0 && trendingSongs.length > 0) {
+    if (madeForYouSongs.length > 0 && featuredSongs.length > 0 && trendingSongs.length > 0) {
       const allSongs = [...madeForYouSongs, ...featuredSongs, ...trendingSongs];
       initializeQueue(allSongs);
     }

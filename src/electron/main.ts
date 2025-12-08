@@ -16,10 +16,13 @@ app.on("ready", () => {
     },
   });
 
+  mainWindow.setMenu(null);
+
   if (isDev) {
     mainWindow.loadURL("http://localhost:3000");
     mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(app.getAppPath(), "dist-react/index.html"));
+    mainWindow.webContents.openDevTools();
   }
 });

@@ -18,6 +18,7 @@ const SignInOAuthButtons = () => {
 
       // Lấy thông tin user
       const user = result.user;
+      console.log("user: ", user)
       navigate("/auth-callback");
 
     } catch (error) {

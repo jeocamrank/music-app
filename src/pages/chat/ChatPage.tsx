@@ -45,8 +45,7 @@ const ChatPage = () => {
 									{messages.map((message) => (
 										<div
 											key={message._id}
-											className={`flex items-start gap-3 ${
-												message.senderId === user?.fireBaseUid ? "flex-row-reverse" : ""
+											className={`flex items-start gap-3 ${message.senderId === user?.fireBaseUid ? "flex-row-reverse" : ""
 												}`}
 										>
 											<Avatar className='size-8'>
