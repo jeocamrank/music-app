@@ -2,9 +2,23 @@
     "appId": "Music-App",
     "files": [
         "dist-electron",
-        "dist-react"
+        "dist-react",
+        "public/**/*"
+    ],
+    "extraFiles": [
+        {
+            "from": "public",
+            "to": "public",
+            "filter": ["**/*"]
+        }
     ],
     "icon": "./Icon.png",
+    "protocols": [
+        {
+            "name": "Music App",
+            "schemes": ["music-app"]
+        }
+    ],
     "mac": {
         "target": "dmg"
     },
