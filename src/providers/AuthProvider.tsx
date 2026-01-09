@@ -9,7 +9,9 @@ import { useChatStore } from "@/stores/useChatStore";
 
 const updateApiToken = (token: string | null) => {
 	if (token) {
-		axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+		axiosInstance.defaults.headers.common[
+			"Authorization"
+		] = `Bearer ${token}`;
 	} else {
 		delete axiosInstance.defaults.headers.common["Authorization"];
 	}
@@ -17,51 +19,54 @@ const updateApiToken = (token: string | null) => {
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [loading, setLoading] = useState(true);
-	const { checkAdminStatus, setUser } = useAuthStore();
+
+	const { checkAdminStatus, setUser, reset } = useAuthStore();
 	const { initSocket, disconnectSocket } = useChatStore();
 
 	useEffect(() => {
-		/**
-		 * Lắng nghe trạng thái người dùng đăng nhập / đăng xuất Firebase
-		 */
-		const unsubscribe = onAuthStateChanged(auth, async (user) => {
+		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
 			try {
-				if (user) {
-					// Lấy token từ Firebase
+				if (firebaseUser) {
+					// 1. Set user vào store
 					setUser({
-						_id: user.uid,
-						fireBaseUid: user.uid,
-						fullName: user.displayName || "",
-						imageUrl: user.photoURL || "",
+						_id: firebaseUser.uid,
+						fireBaseUid: firebaseUser.uid,
+						fullName: firebaseUser.displayName || "",
+						imageUrl: firebaseUser.photoURL || "",
 					});
-					console.log("User: ", user)
-					const token = await user.getIdToken();
+
+					// 2. Lấy token
+					const token = await firebaseUser.getIdToken();
 					updateApiToken(token);
 
-					if (token) {
-						await checkAdminStatus();
-						// init socket
-						if (user.uid) initSocket(user.uid);
-					}
+					// 3. Check admin
+					await checkAdminStatus();
+
+					// 4. Init socket
+					initSocket(firebaseUser.uid);
 				} else {
-					// Nếu user bị sign out
+					// === LOGOUT / GUEST ===
 					updateApiToken(null);
 					disconnectSocket();
+					setUser(null);
+					reset(); // reset isAdmin
 				}
 			} catch (error) {
+				console.error("AuthProvider error:", error);
 				updateApiToken(null);
-				console.error("Error in AuthProvider:", error);
+				disconnectSocket();
+				setUser(null);
+				reset();
 			} finally {
 				setLoading(false);
 			}
 		});
 
-		// Cleanup khi component unmount
 		return () => {
 			unsubscribe();
 			disconnectSocket();
 		};
-	}, [auth, checkAdminStatus, initSocket, disconnectSocket, setUser]);
+	}, [checkAdminStatus, initSocket, disconnectSocket, setUser, reset]);
 
 	if (loading) {
 		return (

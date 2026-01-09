@@ -43,6 +43,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     setSelectedUser: (user) => set({ selectedUser: user }),
 
     fetchUsers: async () => {
+        const token =
+            axiosInstance.defaults.headers.common["Authorization"]
+
+        if (!token) {
+            set({ users: [], isLoading: false })
+            return
+        }
+
         set({ isLoading: true, error: null });
         try {
             const reponse = await axiosInstance.get('/users');
