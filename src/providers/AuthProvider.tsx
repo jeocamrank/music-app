@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { auth } from "@/firebase/fire";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
+import { useMusicStore } from "@/stores/useMusicStore";
 
 const updateApiToken = (token: string | null) => {
 	if (token) {
@@ -22,12 +23,60 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 	const { checkAdminStatus, setUser, reset } = useAuthStore();
 	const { initSocket, disconnectSocket } = useChatStore();
+	const { reset: resetMusicStore } = useMusicStore();
+
+	// useEffect(() => {
+	// 	const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+	// 		try {
+	// 			if (firebaseUser) {
+	// 				// 1. Set user vào store
+	// 				setUser({
+	// 					_id: firebaseUser.uid,
+	// 					fireBaseUid: firebaseUser.uid,
+	// 					fullName: firebaseUser.displayName || "",
+	// 					imageUrl: firebaseUser.photoURL || "",
+	// 				});
+
+	// 				// Lấy token
+	// 				const token = await firebaseUser.getIdToken();
+	// 				updateApiToken(token);
+	// 				// Check admin
+	// 				await checkAdminStatus();
+	// 				// Init socket
+	// 				initSocket(firebaseUser.uid);
+	// 				// fetch playlists
+	// 				await useMusicStore.getState().fetchUserPlaylists()
+	// 			} else {
+	// 				// === LOGOUT / GUEST ===
+	// 				updateApiToken(null);
+	// 				disconnectSocket();
+	// 				setUser(null);
+	// 				resetMusicStore();
+	// 				reset(); // reset isAdmin
+	// 			}
+	// 		} catch (error) {
+	// 			console.error("AuthProvider error:", error);
+	// 			updateApiToken(null);
+	// 			disconnectSocket();
+	// 			setUser(null);
+	// 			reset();
+	// 		} finally {
+	// 			setLoading(false);
+	// 		}
+	// 	});
+
+	// 	return () => {
+	// 		unsubscribe();
+	// 		disconnectSocket();
+	// 	};
+	// }, [checkAdminStatus, initSocket, disconnectSocket, setUser, reset]);
 
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
 			try {
 				if (firebaseUser) {
-					// 1. Set user vào store
+					setLoading(true);
+
 					setUser({
 						_id: firebaseUser.uid,
 						fireBaseUid: firebaseUser.uid,
@@ -35,21 +84,23 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 						imageUrl: firebaseUser.photoURL || "",
 					});
 
-					// 2. Lấy token
-					const token = await firebaseUser.getIdToken();
+					const token = await firebaseUser.getIdToken(true);
 					updateApiToken(token);
+					await Promise.resolve(); // đảm bảo axios nhận token
 
-					// 3. Check admin
 					await checkAdminStatus();
-
-					// 4. Init socket
 					initSocket(firebaseUser.uid);
+
+					await Promise.all([
+						useMusicStore.getState().fetchUserPlaylists(),
+						useChatStore.getState().fetchUsers(),
+					]);
 				} else {
-					// === LOGOUT / GUEST ===
 					updateApiToken(null);
 					disconnectSocket();
 					setUser(null);
-					reset(); // reset isAdmin
+					useMusicStore.getState().reset();
+					reset();
 				}
 			} catch (error) {
 				console.error("AuthProvider error:", error);
@@ -66,7 +117,8 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 			unsubscribe();
 			disconnectSocket();
 		};
-	}, [checkAdminStatus, initSocket, disconnectSocket, setUser, reset]);
+	}, []);
+
 
 	if (loading) {
 		return (

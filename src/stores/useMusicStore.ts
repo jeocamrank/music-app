@@ -29,8 +29,9 @@ interface MusicStore {
     fetchPlaylistsById: (id: string) => Promise<void>,
     createPlaylist: (formData: FormData) => Promise<void>,
     addSongToPlaylist: (playlistId: string, songId: string) => Promise<void>,
-    removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>
-    deletePlaylist: (playlistId: string) => Promise<void>
+    removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>,
+    deletePlaylist: (playlistId: string) => Promise<void>,
+    reset: () => void
 }
 
 export const useMusicStore = create<MusicStore>((set, get) => ({
@@ -307,4 +308,6 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
             );
         }
     },
+
+    reset: () => set({ playlists: [] }),
 }));
