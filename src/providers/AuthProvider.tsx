@@ -6,10 +6,13 @@ import type { ReactNode } from "react";
 import { auth } from "@/firebase/fire";
 import { useAuthStore } from "@/stores/useAuthStore";
 import { useChatStore } from "@/stores/useChatStore";
+import { useMusicStore } from "@/stores/useMusicStore";
 
 const updateApiToken = (token: string | null) => {
 	if (token) {
-		axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+		axiosInstance.defaults.headers.common[
+			"Authorization"
+		] = `Bearer ${token}`;
 	} else {
 		delete axiosInstance.defaults.headers.common["Authorization"];
 	}
@@ -17,51 +20,105 @@ const updateApiToken = (token: string | null) => {
 
 const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [loading, setLoading] = useState(true);
-	const { checkAdminStatus, setUser } = useAuthStore();
+
+	const { checkAdminStatus, setUser, reset } = useAuthStore();
 	const { initSocket, disconnectSocket } = useChatStore();
+	const { reset: resetMusicStore } = useMusicStore();
+
+	// useEffect(() => {
+	// 	const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+	// 		try {
+	// 			if (firebaseUser) {
+	// 				// 1. Set user vào store
+	// 				setUser({
+	// 					_id: firebaseUser.uid,
+	// 					fireBaseUid: firebaseUser.uid,
+	// 					fullName: firebaseUser.displayName || "",
+	// 					imageUrl: firebaseUser.photoURL || "",
+	// 				});
+
+	// 				// Lấy token
+	// 				const token = await firebaseUser.getIdToken();
+	// 				updateApiToken(token);
+	// 				// Check admin
+	// 				await checkAdminStatus();
+	// 				// Init socket
+	// 				initSocket(firebaseUser.uid);
+	// 				// fetch playlists
+	// 				await useMusicStore.getState().fetchUserPlaylists()
+	// 			} else {
+	// 				// === LOGOUT / GUEST ===
+	// 				updateApiToken(null);
+	// 				disconnectSocket();
+	// 				setUser(null);
+	// 				resetMusicStore();
+	// 				reset(); // reset isAdmin
+	// 			}
+	// 		} catch (error) {
+	// 			console.error("AuthProvider error:", error);
+	// 			updateApiToken(null);
+	// 			disconnectSocket();
+	// 			setUser(null);
+	// 			reset();
+	// 		} finally {
+	// 			setLoading(false);
+	// 		}
+	// 	});
+
+	// 	return () => {
+	// 		unsubscribe();
+	// 		disconnectSocket();
+	// 	};
+	// }, [checkAdminStatus, initSocket, disconnectSocket, setUser, reset]);
 
 	useEffect(() => {
-		/**
-		 * Lắng nghe trạng thái người dùng đăng nhập / đăng xuất Firebase
-		 */
-		const unsubscribe = onAuthStateChanged(auth, async (user) => {
+		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
 			try {
-				if (user) {
-					// Lấy token từ Firebase
-					setUser({
-						_id: user.uid,
-						fireBaseUid: user.uid,
-						fullName: user.displayName || "",
-						imageUrl: user.photoURL || "",
-					});
-					console.log("User: ", user)
-					const token = await user.getIdToken();
-					updateApiToken(token);
+				if (firebaseUser) {
+					setLoading(true);
 
-					if (token) {
-						await checkAdminStatus();
-						// init socket
-						if (user.uid) initSocket(user.uid);
-					}
+					setUser({
+						_id: firebaseUser.uid,
+						fireBaseUid: firebaseUser.uid,
+						fullName: firebaseUser.displayName || "",
+						imageUrl: firebaseUser.photoURL || "",
+					});
+
+					const token = await firebaseUser.getIdToken(true);
+					updateApiToken(token);
+					await Promise.resolve(); // đảm bảo axios nhận token
+
+					await checkAdminStatus();
+					initSocket(firebaseUser.uid);
+
+					await Promise.all([
+						useMusicStore.getState().fetchUserPlaylists(),
+						useChatStore.getState().fetchUsers(),
+					]);
 				} else {
-					// Nếu user bị sign out
 					updateApiToken(null);
 					disconnectSocket();
+					setUser(null);
+					useMusicStore.getState().reset();
+					reset();
 				}
 			} catch (error) {
+				console.error("AuthProvider error:", error);
 				updateApiToken(null);
-				console.error("Error in AuthProvider:", error);
+				disconnectSocket();
+				setUser(null);
+				reset();
 			} finally {
 				setLoading(false);
 			}
 		});
 
-		// Cleanup khi component unmount
 		return () => {
 			unsubscribe();
 			disconnectSocket();
 		};
-	}, [auth, checkAdminStatus, initSocket, disconnectSocket, setUser]);
+	}, []);
+
 
 	if (loading) {
 		return (
