@@ -7,7 +7,7 @@ import AlbumPage from "./pages/album/AlbumPage"
 import AdminPage from "./pages/admin/AdminPage"
 import { Toaster } from "react-hot-toast"
 import PlaylistPage from "./pages/playlist/PlaylistPage"
-import AlbumsExplorePage from "./pages/album/AlbumsExplorePage"
+import ShowAllPage from "./pages/album/ShowAllPage"
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/albums/:albumId" element={<AlbumPage />} />
-          <Route path="/albums" element={<AlbumsExplorePage />} />
+          <Route path="/albums" element={<ShowAllPage />} />
           <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
         </Route>
       </Routes>

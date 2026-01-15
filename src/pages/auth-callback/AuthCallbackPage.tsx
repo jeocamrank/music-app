@@ -11,25 +11,29 @@ const AuthCallbackPage = () => {
   const syncAttempted = useRef(false);
 
   useEffect(() => {
-    const syncUser = async () => {
-      if (loading || !user || syncAttempted.current) return;
-      try {
-        syncAttempted.current = true;
+  const syncUser = async () => {
+    if (loading || !user || syncAttempted.current) return;
 
-        await axiosInstance.post("/auth/callback", {
-          id: user.uid, // Firebase UID
-          fullName: user.displayName,
-          imageUrl: user.photoURL,
-        })
-      } catch (error) {
-        console.error("Error in auth callback", error);
-      } finally {
-        navigate("/");
+    try {
+      syncAttempted.current = true;
+
+      const res = await axiosInstance.post("/auth/callback", {
+        id: user.uid,
+        fullName: user.displayName,
+        imageUrl: user.photoURL,
+      });
+
+      if (res.status === 200) {
+        navigate("/", { replace: true });
       }
+    } catch (error) {
+      console.error("Error in auth callback", error);
     }
+  };
 
-    syncUser();
-  }, [user, loading, navigate]);
+  syncUser();
+}, [user, loading, navigate]);
+
 
   return (
     <div className='h-screen w-full bg-black flex items-center justify-center'>

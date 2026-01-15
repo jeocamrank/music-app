@@ -1,4 +1,4 @@
-import { LayoutDashboardIcon } from "lucide-react";
+import { LayoutDashboardIcon, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 import { SignedIn, SignedOut } from "./AuthWrappers";
 import { signOut } from "firebase/auth";
@@ -43,6 +43,7 @@ const Topbar = () => {
 
           <SignedOut>
             <Button onClick={() => setOpenAuth(true)}>
+              <LogIn className="size-4" />
               Đăng nhập
             </Button>
           </SignedOut>

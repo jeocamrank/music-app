@@ -14,11 +14,13 @@ import {
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import { useMusicStore } from '@/stores/useMusicStore'
-import { HomeIcon, Library, MessageCircle, Trash2 } from 'lucide-react'
+import { HomeIcon, Library, MessageCircle, Settings, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CreatePlaylistDialog from './CreatePlaylistDialog'
 import { useAuthStore } from '@/stores/useAuthStore'
+import GuestPlaylistSkeleton from './GuestPlaylistPrompt'
+import SettingDialog from './SettingDialog'
 
 const LeftSidebar = () => {
     const {
@@ -34,6 +36,7 @@ const LeftSidebar = () => {
     const navigate = useNavigate()
 
     const [openAlert, setOpenAlert] = useState(false)
+    const [openSetting, setOpenSetting] = useState(false)
     const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(
         null
     )
@@ -105,6 +108,21 @@ const LeftSidebar = () => {
                             <MessageCircle className="mr-2 size-5" />
                             <span className="hidden md:inline">Messages</span>
                         </Link>
+
+                        {/* Settings */}
+                        <button
+                            onClick={() => setOpenSetting(true)}
+                            className={cn(
+                                buttonVariants({
+                                    variant: 'ghost',
+                                    className:
+                                        'w-full justify-start text-white hover:bg-zinc-800',
+                                })
+                            )}
+                        >
+                            <Settings className="mr-2 size-5" />
+                            <span className="hidden md:inline">Settings</span>
+                        </button>
                     </SignedIn>
                 </div>
             </div>
@@ -121,7 +139,9 @@ const LeftSidebar = () => {
                 </div>
 
                 <ScrollArea className="h-[calc(100vh-300px)]">
-                    {isLoading ? (
+                    {!user ? (
+                        <GuestPlaylistSkeleton />
+                    ) : isLoading ? (
                         <PlaylistSkeleton />
                     ) : playlists.length === 0 ? (
                         <p className="text-sm text-zinc-400 px-2">
@@ -134,7 +154,7 @@ const LeftSidebar = () => {
                                     key={playlist._id}
                                     to={`/playlists/${playlist._id}`}
                                     className="group p-2 rounded-md flex items-center gap-3
-                                    hover:bg-zinc-800 relative"
+          hover:bg-zinc-800 relative"
                                 >
                                     <img
                                         src={playlist.imageUrl}
@@ -151,13 +171,12 @@ const LeftSidebar = () => {
                                         </p>
                                     </div>
 
-                                    {/* delete */}
                                     <button
                                         onClick={(e) =>
                                             handleOpenDelete(e, playlist._id)
                                         }
                                         className="opacity-0 group-hover:opacity-100
-                                        text-zinc-400 hover:text-red-500 transition"
+            text-zinc-400 hover:text-red-500 transition"
                                     >
                                         <Trash2 className="size-4" />
                                     </button>
@@ -166,6 +185,7 @@ const LeftSidebar = () => {
                         </div>
                     )}
                 </ScrollArea>
+
             </div>
 
             {/* AlertDialog confirm delete */}
@@ -192,6 +212,8 @@ const LeftSidebar = () => {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            <SettingDialog open={openSetting} onOpenChange={setOpenSetting} />
         </div>
     )
 }

@@ -23,12 +23,13 @@ interface MusicStore {
     fetchTrendingSongs: () => Promise<void>,
     fetchStats: () => Promise<void>,
     fetchSongs: () => Promise<void>,
-    deleteSong: (id: string) => Promise<void>,
-    deleteAlbum: (id: string) => Promise<void>,
     fetchUserPlaylists: () => Promise<void>,
     fetchPlaylistsById: (id: string) => Promise<void>,
-    createPlaylist: (formData: FormData) => Promise<void>,
+    fetchShowAll: () => Promise<void>,
     addSongToPlaylist: (playlistId: string, songId: string) => Promise<void>,
+    createPlaylist: (formData: FormData) => Promise<void>,
+    deleteSong: (id: string) => Promise<void>,
+    deleteAlbum: (id: string) => Promise<void>,
     removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>,
     deletePlaylist: (playlistId: string) => Promise<void>,
     reset: () => void
@@ -207,7 +208,7 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
     createPlaylist: async (formData: FormData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axiosInstance.post('/playlist', formData, {
+            await axiosInstance.post('/playlist', formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -306,6 +307,27 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
             toast.error(
                 error.response?.data?.message || "Không thể thêm bài hát"
             );
+        }
+    },
+
+    fetchShowAll: async () => {
+        set({ isLoading: true, error: null })
+        try {
+            const [albumRes, songRes] = await Promise.all([
+                axiosInstance.get("/albums"),
+                axiosInstance.get("/songs"),
+            ])
+
+            set({
+                albums: albumRes.data.albums,
+                songs: songRes.data.songs,
+            })
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.message,
+            })
+        } finally {
+            set({ isLoading: false })
         }
     },
 
