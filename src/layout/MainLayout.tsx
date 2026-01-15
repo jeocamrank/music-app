@@ -5,6 +5,7 @@ import FriendsActivity from "./components/FriendsActivity";
 import AudioPlayer from "./components/AudioPlayer";
 import PlayBackControl from "./components/PlayBackControl";
 import { useEffect, useState } from "react";
+import FloatingChatbot from "@/pages/ai-chatbox/FloatingChatbox";
 
 const MainLayout = () => {
     const [isMobile, setIsMoblie] = useState(false);
@@ -33,6 +34,7 @@ const MainLayout = () => {
                 {/* Main content */}
                 <ResizablePanel defaultSize={isMobile ? 80 : 60}>
                     <Outlet />
+                    <FloatingChatbot />
                 </ResizablePanel>
 
                 {!isMobile && (
