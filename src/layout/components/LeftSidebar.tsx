@@ -14,7 +14,8 @@ import {
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
 import { useMusicStore } from '@/stores/useMusicStore'
-import { HomeIcon, Library, MessageCircle, Settings, Trash2 } from 'lucide-react'
+// 👇 Đã thêm Crown và Music vào import
+import { HomeIcon, Library, MessageCircle, Settings, Trash2, Crown, Music } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import CreatePlaylistDialog from './CreatePlaylistDialog'
@@ -73,13 +74,12 @@ const LeftSidebar = () => {
         setSelectedPlaylistId(null)
     }
 
-    console.log('playlist: ', playlists)
-
     return (
         <div className="h-full flex flex-col gap-2">
             {/* Navigation */}
             <div className="rounded-lg bg-zinc-900 p-4">
                 <div className="space-y-2">
+                    {/* Home Button */}
                     <Link
                         to="/"
                         className={cn(
@@ -92,6 +92,37 @@ const LeftSidebar = () => {
                     >
                         <HomeIcon className="mr-2 size-5" />
                         <span className="hidden md:inline">Home</span>
+                    </Link>
+
+                    {/* 👇 Nút Music Mới */}
+                    <Link
+                        to="/music"
+                        className={cn(
+                            buttonVariants({
+                                variant: 'ghost',
+                                className:
+                                    'w-full justify-start text-white hover:bg-zinc-800',
+                            })
+                        )}
+                    >
+                        <Music className="mr-2 size-5" />
+                        <span className="hidden md:inline">Music</span>
+                    </Link>
+
+                    {/* 👇 Nút Premium Mới */}
+                    <Link
+                        to="/premium"
+                        className={cn(
+                            buttonVariants({
+                                variant: 'ghost',
+                                className:
+                                    'w-full justify-start text-white hover:bg-zinc-800',
+                            })
+                        )}
+                    >
+                        {/* Icon Crown màu vàng để nổi bật */}
+                        <Crown className="mr-2 size-5 text-yellow-500" />
+                        <span className="hidden md:inline">Premium</span>
                     </Link>
 
                     <SignedIn>

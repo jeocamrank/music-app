@@ -1,8 +1,9 @@
 import type { Song } from "@/types";
 import SectionGridSkeleton from "./SectionGridSkeleton";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button"; // Không cần dùng Button nữa
 import PlayButton from "./PlayButton";
 import AddToPlaylistButton from "./AddToPlayListButton";
+import { Link } from "react-router-dom"; // 1. Import Link
 
 type SectionGridProps = {
     title: string;
@@ -14,12 +15,17 @@ const SectionGrid = ({ title, songs, isLoading }: SectionGridProps) => {
     if (isLoading) return <SectionGridSkeleton />
 
     return (
-        <div className="mb-8">
+        <div className="mb-8 px-4">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
-                <Button variant="link" className="text-sm text-zinc-400 hover:text-white">
+
+                {/* 2. Thay Button bằng Link trỏ tới /show-all */}
+                <Link
+                    to="/music"
+                    className="text-sm text-zinc-400 hover:text-white"
+                >
                     Show all
-                </Button>
+                </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

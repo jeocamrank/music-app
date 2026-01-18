@@ -2,16 +2,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/hook/useAuth";
 import { useChatStore } from "@/stores/useChatStore"
-import { HeadphonesIcon, Music, Users } from "lucide-react";
+import { HeadphonesIcon, Music, Users, Crown } from "lucide-react"; // Thêm Crown icon
 import { useEffect } from "react";
 
 const FriendsActivity = () => {
     const { users, fetchUsers, onlineUsers, userActivities } = useChatStore();
-    const { user } = useAuth();
+    const { user: currentUser } = useAuth(); // Đổi tên để tránh nhầm lẫn với user trong map
 
     useEffect(() => {
-        fetchUsers();
-    }, [fetchUsers, user]);
+        if (currentUser) fetchUsers();
+    }, [fetchUsers, currentUser]);
 
     return (
         <div className="h-full bg-zinc-900 rounded-lg flex flex-col">
@@ -22,33 +22,61 @@ const FriendsActivity = () => {
                 </div>
             </div>
 
-            {!user && <LoginPrompt />}
+            {!currentUser && <LoginPrompt />}
+
             <ScrollArea className="flex-1">
                 <div className="p-4 space-y-4">
                     {users.map((user) => {
                         const activity = userActivities.get(user.fireBaseUid);
                         const isPlaying = activity && activity !== "Idle";
+                        const isOnline = onlineUsers.has(user.fireBaseUid);
+                        // Giả sử user object có thuộc tính isPremium
+                        // Nếu type user chưa có, bạn cần update type User
+                        const isPremium = user.isPremium;
 
                         return (
                             <div key={user._id} className="cursor-pointer hover:bg-zinc-800/50 p-3 rounded-md transition-colors group">
                                 <div className="flex items-start gap-3">
-                                    <div className="relative">
-                                        <Avatar className="size-10 border border-zinc-800">
-                                            <AvatarImage src={user.imageUrl} alt={user.fullName} />
-                                            <AvatarFallback>{user.fullName[0]}</AvatarFallback>
-                                        </Avatar>
+                                    {/* --- AVATAR SECTION --- */}
+                                    <div className="relative group/avatar">
+                                        {/* 1. Glow Effect (Chỉ hiện khi Premium) */}
+                                        {isPremium && (
+                                            <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full blur opacity-0 group-hover/avatar:opacity-75 transition duration-500"></div>
+                                        )}
+
+                                        {/* 2. Border Gradient (Chỉ hiện khi Premium) */}
+                                        <div className={`relative ${isPremium ? "p-[2px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full" : ""}`}>
+                                            <Avatar className={`size-10 border ${isPremium ? "border-zinc-900" : "border-zinc-800"}`}>
+                                                <AvatarImage src={user.imageUrl} alt={user.fullName} className="object-cover" />
+                                                <AvatarFallback>{user.fullName[0]}</AvatarFallback>
+                                            </Avatar>
+                                        </div>
+
+                                        {/* 3. Online Indicator */}
                                         <div
                                             className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-zinc-900 
-												${onlineUsers.has(user.fireBaseUid) ? "bg-green-500" : "bg-zinc-500"}
-												`}
+                                                ${isOnline ? "bg-green-500" : "bg-zinc-500"}
+                                            `}
                                             aria-hidden='true'
                                         />
+
+                                        {/* 4. Crown Badge (Tùy chọn: Nếu muốn hiện vương miện nhỏ) */}
+                                        {/* {isPremium && (
+                                            <div className="absolute -top-1 -right-1 bg-yellow-400 p-0.5 rounded-full border border-zinc-900 z-10">
+                                                <Crown className="size-2 text-black fill-black" />
+                                            </div>
+                                        )} */}
                                     </div>
 
                                     <div className='flex-1 min-w-0'>
                                         <div className='flex items-center gap-2'>
-                                            <span className='font-medium text-sm text-white'>{user.fullName}</span>
-                                            {isPlaying && <Music className='size-3.5 text-emerald-400 shrink-0' />}
+                                            <span className={`font-medium text-sm ${isPremium ? "text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400 font-bold" : "text-white"}`}>
+                                                {user.fullName}
+                                            </span>
+                                            {/* Icon Crown cạnh tên cho Premium */}
+                                            {isPremium && <Crown className="size-3 text-yellow-500 fill-yellow-500 shrink-0" />}
+
+                                            {isPlaying && <Music className='size-3.5 text-emerald-400 shrink-0 ml-auto' />}
                                         </div>
 
                                         {isPlaying ? (
@@ -94,4 +122,4 @@ const LoginPrompt = () => (
     </div>
 );
 
-export default FriendsActivity
+export default FriendsActivity;

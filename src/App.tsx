@@ -8,6 +8,8 @@ import AdminPage from "./pages/admin/AdminPage"
 import { Toaster } from "react-hot-toast"
 import PlaylistPage from "./pages/playlist/PlaylistPage"
 import ShowAllPage from "./pages/album/ShowAllPage"
+import PremiumPage from "./pages/payment/PremiumPage"
+import PremiumSuccessPage from "./pages/payment/PremiumSuccessPage"
 
 function App() {
   return (
@@ -20,8 +22,11 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/chat" element={<ChatPage />} />
           <Route path="/albums/:albumId" element={<AlbumPage />} />
-          <Route path="/showall" element={<ShowAllPage />} />
+          <Route path="/music" element={<ShowAllPage />} />
           <Route path="/playlists/:playlistId" element={<PlaylistPage />} />
+
+          <Route path="/premium" element={<PremiumPage />} />
+          <Route path="/premium-success" element={<PremiumSuccessPage />} />
         </Route>
       </Routes>
 
