@@ -1,3 +1,4 @@
+import { create } from 'zustand';
 export interface Song {
     _id: string;
     title: string;
@@ -42,6 +43,7 @@ export interface User {
     imageUrl: string;
     isPremium: boolean;
     premiumExpiry: string;
+    createdAt: string;
 }
 
 export interface Playlist {

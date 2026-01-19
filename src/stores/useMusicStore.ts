@@ -30,6 +30,8 @@ interface MusicStore {
     createPlaylist: (formData: FormData) => Promise<void>,
     deleteSong: (id: string) => Promise<void>,
     deleteAlbum: (id: string) => Promise<void>,
+    updateSong: (id: string, formData: FormData) => Promise<void>;
+    updateAlbum: (id: string, formData: FormData) => Promise<void>;
     removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>,
     deletePlaylist: (playlistId: string) => Promise<void>,
     reset: () => void
@@ -328,6 +330,55 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
             })
         } finally {
             set({ isLoading: false })
+        }
+    },
+
+    updateSong: async (id, formData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.put(`/admin/songs/${id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            const updatedSong = response.data.song;
+
+            set((state) => ({
+                songs: state.songs.map((song) =>
+                    song._id === id ? updatedSong : song
+                ),
+            }));
+
+            toast.success("Song updated successfully");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Error updating song");
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    updateAlbum: async (id, formData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.put(`/admin/albums/${id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            const updatedAlbum = response.data.album;
+
+            set((state) => ({
+                albums: state.albums.map((album) =>
+                    album._id === id ? updatedAlbum : album
+                ),
+                currentAlbum: state.currentAlbum?._id === id ? updatedAlbum : state.currentAlbum
+            }));
+
+            toast.success("Album updated successfully");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Error updating album");
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
         }
     },
 
