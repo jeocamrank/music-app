@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores/useAuthStore";
 import { useEffect } from "react";
 import UsersList from "./components/UsersList";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"; // Thêm AvatarFallback
 import ChatHeader from "./components/ChatHeader";
 import MessageInput from "./components/MessageInput";
 
@@ -42,35 +42,50 @@ const ChatPage = () => {
 
 							<ScrollArea className='h-[calc(100vh-340px)]'>
 								<div className='p-4 space-y-4'>
-									{messages.map((message) => (
-										<div
-											key={message._id}
-											className={`flex items-start gap-3 ${message.senderId === user?.fireBaseUid ? "flex-row-reverse" : ""
-												}`}
-										>
-											<Avatar className='size-8'>
-												<AvatarImage
-													src={
-														message.senderId === user?.fireBaseUid
-															? user.imageUrl || "/default-avatar.png"
-															: selectedUser.imageUrl || "/default-avatar.png"
-													}
-												/>
-											</Avatar>
+									{messages.map((message) => {
+										const isSender = message.senderId === user?.fireBaseUid;
+										// Xác định user tương ứng với tin nhắn để lấy thông tin Premium
+										const messageUser = isSender ? user : selectedUser;
+										// Kiểm tra Premium (Giả sử thuộc tính isPremium có trong object user)
+										const isPremium = messageUser?.isPremium;
 
+										return (
 											<div
-												className={`rounded-lg p-3 max-w-[70%]
-													${message.senderId === user?.fireBaseUid ? "bg-green-500" : "bg-zinc-800"
-													}
-												`}
+												key={message._id}
+												className={`flex items-start gap-3 ${isSender ? "flex-row-reverse" : ""}`}
 											>
-												<p className='text-sm'>{message.content}</p>
-												<span className='text-xs text-zinc-300 mt-1 block'>
-													{formatTime(message.createdAt)}
-												</span>
+												{/* --- AVATAR SECTION WITH PREMIUM EFFECT --- */}
+												<div className="relative group/avatar shrink-0">
+													{/* 1. Glow Effect (Chỉ hiện khi Premium) */}
+													{isPremium && (
+														<div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full blur opacity-50"></div>
+													)}
+
+													{/* 2. Border Gradient (Chỉ hiện khi Premium) */}
+													<div className={`relative ${isPremium ? "p-[2px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full" : ""}`}>
+														<Avatar className={`size-8 border ${isPremium ? "border-zinc-900" : "border-transparent"}`}>
+															<AvatarImage
+																src={messageUser?.imageUrl || "/default-avatar.png"}
+																className="object-cover"
+															/>
+															<AvatarFallback>{messageUser?.fullName?.[0]}</AvatarFallback>
+														</Avatar>
+													</div>
+												</div>
+
+												<div
+													className={`rounded-lg p-3 max-w-[70%]
+                                                        ${isSender ? "bg-green-500" : "bg-zinc-800"}
+                                                    `}
+												>
+													<p className='text-sm'>{message.content}</p>
+													<span className='text-xs text-zinc-300 mt-1 block'>
+														{formatTime(message.createdAt)}
+													</span>
+												</div>
 											</div>
-										</div>
-									))}
+										);
+									})}
 								</div>
 							</ScrollArea>
 

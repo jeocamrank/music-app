@@ -2,22 +2,32 @@ import { useState } from "react";
 import Topbar from "@/components/Topbar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Check, Zap, Headphones, Download, CreditCard, Loader2, UserCheck } from "lucide-react";
+import { Check, Zap, Headphones, CreditCard, Loader2, UserCheck, Music, Bot, Crown } from "lucide-react";
 import { usePaymentStore } from "@/stores/usePaymentStore";
-import { useAuthStore } from "@/stores/useAuthStore"; // 1. Import AuthStore
+import { useAuthStore } from "@/stores/useAuthStore";
 import PaymentDialog from "./PaymentDialog";
 
-// Danh sách quyền lợi
+// Cập nhật danh sách quyền lợi mới
 const features = [
+    {
+        icon: <Music className="size-6 text-green-500" />,
+        title: "Tạo playlist không giới hạn",
+        desc: "Thoả sức sáng tạo và lưu trữ mọi bài hát yêu thích không giới hạn số lượng playlist.",
+    },
+    {
+        icon: <Crown className="size-6 text-green-500" />,
+        title: "Avatar Premium độc quyền",
+        desc: "Sở hữu khung viền phát sáng và hiệu ứng avatar đặc biệt chỉ dành cho thành viên Premium.",
+    },
+    {
+        icon: <Bot className="size-6 text-green-500" />,
+        title: "Trợ lý Chatbot AI thông minh",
+        desc: "Trải nghiệm tính năng Chatbot AI hỗ trợ tìm kiếm nhạc và trò chuyện thú vị.",
+    },
     {
         icon: <Zap className="size-6 text-green-500" />,
         title: "Nghe nhạc không quảng cáo",
         desc: "Tận hưởng âm nhạc không gián đoạn, mượt mà.",
-    },
-    {
-        icon: <Download className="size-6 text-green-500" />,
-        title: "Tải nhạc ngoại tuyến",
-        desc: "Nghe nhạc mọi lúc mọi nơi, kể cả khi không có mạng.",
     },
     {
         icon: <Headphones className="size-6 text-green-500" />,
@@ -28,7 +38,7 @@ const features = [
 
 const PremiumPage = () => {
     const { createPaymentUrl, isLoading } = usePaymentStore();
-    const { user } = useAuthStore(); // 2. Lấy user từ store
+    const { user } = useAuthStore();
 
     // State quản lý việc hiển thị Dialog QR Code
     const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -83,7 +93,7 @@ const PremiumPage = () => {
                                 Be Happy.
                             </h1>
                             <p className="text-zinc-200 text-lg max-w-md mx-auto md:mx-0">
-                                Trải nghiệm âm nhạc không giới hạn chỉ với 50.000đ/tháng. Hủy bất kỳ lúc nào.
+                                Trải nghiệm âm nhạc không giới hạn chỉ với 50.000đ/tháng.
                             </p>
 
                             <div className="hidden md:flex gap-4">
@@ -100,6 +110,7 @@ const PremiumPage = () => {
                                 Best Value
                             </div>
 
+
                             <div className="flex justify-between items-center mb-4 border-b border-zinc-700 pb-4">
                                 <span className="text-zinc-100 font-semibold">Gói Cá Nhân</span>
                                 <div className="text-right">
@@ -115,10 +126,11 @@ const PremiumPage = () => {
 
                             <ul className="space-y-3 mb-8 text-left">
                                 {[
+                                    "Tạo playlist không giới hạn",
+                                    "Avatar Premium độc quyền",
+                                    "Trợ lý Chatbot AI",
                                     "Nghe nhạc không quảng cáo",
-                                    "Tải xuống không giới hạn",
                                     "Chất lượng âm thanh Lossless",
-                                    "Phát bất kỳ bài hát nào"
                                 ].map((item, i) => (
                                     <li key={i} className="flex items-center gap-3">
                                         <div className="bg-green-500/20 p-1 rounded-full shrink-0">
