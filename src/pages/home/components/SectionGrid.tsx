@@ -1,9 +1,10 @@
 import type { Song } from "@/types";
 import SectionGridSkeleton from "./SectionGridSkeleton";
-// import { Button } from "@/components/ui/button"; // Không cần dùng Button nữa
 import PlayButton from "./PlayButton";
 import AddToPlaylistButton from "./AddToPlayListButton";
-import { Link } from "react-router-dom"; // 1. Import Link
+import { Link } from "react-router-dom";
+import DownloadButton from "./DownloadButton";
+import { useAuthStore } from "@/stores/useAuthStore"; // 1. Import Auth Store
 
 type SectionGridProps = {
     title: string;
@@ -12,6 +13,8 @@ type SectionGridProps = {
 }
 
 const SectionGrid = ({ title, songs, isLoading }: SectionGridProps) => {
+    const { user } = useAuthStore(); // 2. Lấy thông tin user
+
     if (isLoading) return <SectionGridSkeleton />
 
     return (
@@ -19,7 +22,6 @@ const SectionGrid = ({ title, songs, isLoading }: SectionGridProps) => {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
 
-                {/* 2. Thay Button bằng Link trỏ tới /show-all */}
                 <Link
                     to="/music"
                     className="text-sm text-zinc-400 hover:text-white"
@@ -43,6 +45,9 @@ const SectionGrid = ({ title, songs, isLoading }: SectionGridProps) => {
                                     group-hover:scale-105"
                                 />
                             </div>
+
+
+                            {user?.isPremium && <DownloadButton song={song} />}
                             <AddToPlaylistButton song={song} />
                             <PlayButton song={song} />
                         </div>

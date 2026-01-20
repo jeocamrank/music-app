@@ -47,7 +47,7 @@ const RevenueChart = () => {
 
         return {
             labels: last7Days.map(date => {
-                const [y, m, d] = date.split('-');
+                const [ , m, d] = date.split('-');
                 return `${d}/${m}`;
             }),
             datasets: [

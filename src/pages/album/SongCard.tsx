@@ -2,6 +2,8 @@ import type { Song } from "@/types"
 import AddToPlaylistButton from "../home/components/AddToPlayListButton"
 import PlayButton from "../home/components/PlayButton"
 import { usePlayerStore } from "@/stores/usePlayerStore"
+import DownloadButton from "../home/components/DownloadButton"
+import { useAuthStore } from "@/stores/useAuthStore" // 1. Import Auth Store
 
 interface Props {
     song: Song
@@ -10,6 +12,7 @@ interface Props {
 
 const SongCard = ({ song, variant = "grid" }: Props) => {
     const { currentSong } = usePlayerStore()
+    const { user } = useAuthStore() // 2. Lấy thông tin user
     const isActive = currentSong?._id === song._id
 
     // ================= GRID (Album / SectionGrid) =================
@@ -49,6 +52,7 @@ const SongCard = ({ song, variant = "grid" }: Props) => {
                     </div>
 
                     {/* Buttons overlay */}
+                    {user?.isPremium && <DownloadButton song={song} />} 
                     <AddToPlaylistButton song={song} />
                     <PlayButton song={song} />
                 </div>
@@ -95,6 +99,9 @@ const SongCard = ({ song, variant = "grid" }: Props) => {
             </div>
 
             {/* Action */}
+             {/* 3. Chỉ hiện nút Download nếu là Premium */}
+            {user?.isPremium && <DownloadButton song={song} />}
+            
             <PlayButton song={song} />
             <AddToPlaylistButton song={song} />
         </div>

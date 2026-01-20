@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useUserStore } from "@/stores/useUserStore";
-import { Calendar, Trash2, Pencil, ChevronLeft, ChevronRight, Check, X, User as UserIcon, Copy } from "lucide-react";
+import { Calendar, Trash2, Pencil, ChevronLeft, ChevronRight, Check, User as UserIcon, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import EditUserDialog from "./EditUserDialog";
