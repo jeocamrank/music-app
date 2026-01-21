@@ -1,10 +1,10 @@
 import Topbar from "@/components/Topbar";
 import { useChatStore } from "@/stores/useChatStore";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react"; // 1. Import useRef
 import UsersList from "./components/UsersList";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"; // Thêm AvatarFallback
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import ChatHeader from "./components/ChatHeader";
 import MessageInput from "./components/MessageInput";
 
@@ -19,6 +19,21 @@ const formatTime = (date: string) => {
 const ChatPage = () => {
 	const { user } = useAuthStore();
 	const { messages, selectedUser, fetchUsers, fetchMessages } = useChatStore();
+
+	// 2. Tạo ref để tham chiếu đến điểm cuối của danh sách tin nhắn
+	const messagesEndRef = useRef<HTMLDivElement>(null);
+
+	// 3. Hàm cuộn xuống cuối
+	const scrollToBottom = () => {
+		if (messagesEndRef.current) {
+			messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+		}
+	};
+
+	// 4. Gọi scrollToBottom mỗi khi messages thay đổi hoặc chọn user mới
+	useEffect(() => {
+		scrollToBottom();
+	}, [messages, selectedUser]);
 
 	useEffect(() => {
 		if (user) fetchUsers();
@@ -44,9 +59,7 @@ const ChatPage = () => {
 								<div className='p-4 space-y-4'>
 									{messages.map((message) => {
 										const isSender = message.senderId === user?.fireBaseUid;
-										// Xác định user tương ứng với tin nhắn để lấy thông tin Premium
 										const messageUser = isSender ? user : selectedUser;
-										// Kiểm tra Premium (Giả sử thuộc tính isPremium có trong object user)
 										const isPremium = messageUser?.isPremium;
 
 										return (
@@ -54,14 +67,11 @@ const ChatPage = () => {
 												key={message._id}
 												className={`flex items-start gap-3 ${isSender ? "flex-row-reverse" : ""}`}
 											>
-												{/* --- AVATAR SECTION WITH PREMIUM EFFECT --- */}
+												{/* --- AVATAR SECTION --- */}
 												<div className="relative group/avatar shrink-0">
-													{/* 1. Glow Effect (Chỉ hiện khi Premium) */}
 													{isPremium && (
 														<div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full blur opacity-50"></div>
 													)}
-
-													{/* 2. Border Gradient (Chỉ hiện khi Premium) */}
 													<div className={`relative ${isPremium ? "p-[2px] bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full" : ""}`}>
 														<Avatar className={`size-8 border ${isPremium ? "border-zinc-900" : "border-transparent"}`}>
 															<AvatarImage
@@ -73,19 +83,23 @@ const ChatPage = () => {
 													</div>
 												</div>
 
+												{/* --- MESSAGE BUBBLE --- */}
 												<div
 													className={`rounded-lg p-3 max-w-[70%]
                                                         ${isSender ? "bg-green-500" : "bg-zinc-800"}
                                                     `}
 												>
 													<p className='text-sm'>{message.content}</p>
-													<span className='text-xs text-zinc-300 mt-1 block'>
+													<span className='text-xs text-zinc-300 mt-1 block text-right opacity-70'>
 														{formatTime(message.createdAt)}
 													</span>
 												</div>
 											</div>
 										);
 									})}
+
+									{/* 5. Đặt thẻ div tàng hình này ở cuối danh sách để làm mốc cuộn */}
+									<div ref={messagesEndRef} />
 								</div>
 							</ScrollArea>
 
@@ -99,6 +113,7 @@ const ChatPage = () => {
 		</main>
 	);
 };
+
 export default ChatPage;
 
 const NoConversationPlaceholder = () => (
