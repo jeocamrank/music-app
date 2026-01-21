@@ -106,7 +106,7 @@ function startLocalServer() {
 
   return new Promise<void>((resolve) => {
     localServer!.listen(PORT, () => {
-      console.log(`Local server started on http://localhost:${PORT}`);
+      console.log(`Local server started on https://ba-appmucsic-production.up.railway.app/api`);
       resolve();
     });
   });
@@ -126,7 +126,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: false, 
+      webSecurity: false,
       additionalArguments:
         process.env.NODE_ENV === "development"
           ? ["--disable-web-security"]

@@ -49,7 +49,7 @@ const PremiumSuccessPage = () => {
                                         </Button>
                                     </Link>
 
-                                    <Link to="/showall">
+                                    <Link to="/music">
                                         <Button variant="outline" className="w-full border-zinc-700 hover:bg-zinc-800 text-white h-12 text-base">
                                             <Music className="mr-2 size-5" />
                                             Khám phá thư viện
