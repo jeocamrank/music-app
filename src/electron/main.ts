@@ -8,6 +8,7 @@ const isDev = !app.isPackaged;
 
 let localServer: ReturnType<typeof createServer> | null = null;
 const PORT = 3210;
+
 function startLocalServer() {
   if (localServer) return;
 
@@ -20,6 +21,8 @@ function startLocalServer() {
 
     let fullPath: string;
     const appPath = app.getAppPath();
+
+    // Xử lý logic tìm file (Giữ nguyên logic của bạn)
     if (filePath.match(/\.(jpg|jpeg|png|gif|svg|mp3|wav|ogg)$/i)) {
       const fileName = path.basename(filePath);
       fullPath = ""; // Initialize
@@ -61,10 +64,10 @@ function startLocalServer() {
       fullPath = path.join(appPath, filePath);
     }
 
-    console.log(`[Server] Request: ${req.url} -> ${fullPath}`);
+    // console.log(`[Server] Request: ${req.url} -> ${fullPath}`); // Comment lại cho sạch log production
 
     if (!existsSync(fullPath)) {
-      console.log(`[Server] File not found: ${fullPath}`);
+      // console.log(`[Server] File not found: ${fullPath}`);
       res.writeHead(404);
       res.end(`File not found: ${filePath}`);
       return;
@@ -106,7 +109,7 @@ function startLocalServer() {
 
   return new Promise<void>((resolve) => {
     localServer!.listen(PORT, () => {
-      console.log(`Local server started on https://ba-appmucsic-production.up.railway.app/api`);
+      console.log(`Local server started on port ${PORT}`);
       resolve();
     });
   });
@@ -134,6 +137,7 @@ function createWindow() {
     },
   });
 
+  // Ẩn thanh menu mặc định của Electron (File, Edit, View...)
   mainWindow.setMenu(null);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -160,6 +164,7 @@ function createWindow() {
 
   if (isDev) {
     mainWindow.loadURL("http://localhost:3000");
+    // Chỉ mở DevTools khi đang ở chế độ Development (npm run dev)
     mainWindow.webContents.openDevTools();
   } else {
     const url = `http://localhost:${PORT}`;
@@ -173,8 +178,6 @@ function createWindow() {
     };
 
     setTimeout(tryLoad, 300);
-
-    mainWindow.webContents.openDevTools();
 
     mainWindow.webContents.on(
       "did-fail-load",

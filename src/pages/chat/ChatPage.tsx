@@ -1,7 +1,7 @@
 import Topbar from "@/components/Topbar";
 import { useChatStore } from "@/stores/useChatStore";
 import { useAuthStore } from "@/stores/useAuthStore";
-import { useEffect, useRef } from "react"; // 1. Import useRef
+import { useEffect, useRef } from "react";
 import UsersList from "./components/UsersList";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -20,17 +20,20 @@ const ChatPage = () => {
 	const { user } = useAuthStore();
 	const { messages, selectedUser, fetchUsers, fetchMessages } = useChatStore();
 
-	// 2. Tạo ref để tham chiếu đến điểm cuối của danh sách tin nhắn
+	// Tạo Ref để cuộn
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
-	// 3. Hàm cuộn xuống cuối
+	// Hàm cuộn xuống cuối
 	const scrollToBottom = () => {
 		if (messagesEndRef.current) {
-			messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+			// setTimeout nhỏ để đảm bảo DOM đã render xong tin nhắn mới
+			setTimeout(() => {
+				messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+			}, 50);
 		}
 	};
 
-	// 4. Gọi scrollToBottom mỗi khi messages thay đổi hoặc chọn user mới
+	// Cuộn mỗi khi có tin nhắn mới hoặc đổi người
 	useEffect(() => {
 		scrollToBottom();
 	}, [messages, selectedUser]);
@@ -67,7 +70,6 @@ const ChatPage = () => {
 												key={message._id}
 												className={`flex items-start gap-3 ${isSender ? "flex-row-reverse" : ""}`}
 											>
-												{/* --- AVATAR SECTION --- */}
 												<div className="relative group/avatar shrink-0">
 													{isPremium && (
 														<div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full blur opacity-50"></div>
@@ -83,7 +85,6 @@ const ChatPage = () => {
 													</div>
 												</div>
 
-												{/* --- MESSAGE BUBBLE --- */}
 												<div
 													className={`rounded-lg p-3 max-w-[70%]
                                                         ${isSender ? "bg-green-500" : "bg-zinc-800"}
@@ -98,7 +99,7 @@ const ChatPage = () => {
 										);
 									})}
 
-									{/* 5. Đặt thẻ div tàng hình này ở cuối danh sách để làm mốc cuộn */}
+									{/* Điểm neo để cuộn xuống đáy */}
 									<div ref={messagesEndRef} />
 								</div>
 							</ScrollArea>

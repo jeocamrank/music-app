@@ -27,6 +27,8 @@ interface MusicStore {
     fetchPlaylistsById: (id: string) => Promise<void>,
     fetchShowAll: () => Promise<void>,
     addSongToPlaylist: (playlistId: string, songId: string) => Promise<void>,
+    addSong: (formData: FormData) => Promise<void>,
+    addAlbum: (formData: FormData) => Promise<void>;
     createPlaylist: (formData: FormData) => Promise<void>,
     deleteSong: (id: string) => Promise<void>,
     deleteAlbum: (id: string) => Promise<void>,
@@ -70,16 +72,67 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
         }
     },
 
+    addSong: async (formData: FormData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.post("/admin/songs", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            // Lấy bài hát mới từ response server
+            const newSong = response.data.song;
+
+            // Cập nhật state songs bằng cách thêm bài mới vào danh sách hiện có
+            set((state) => ({
+                songs: [...state.songs, newSong],
+            }));
+
+            toast.success("Song added successfully");
+        } catch (error: any) {
+            toast.error("Error adding song");
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
     deleteSong: async (id: string) => {
         set({ isLoading: true, error: null });
         try {
             await axiosInstance.delete(`/admin/songs/${id}`);
+            // Cập nhật state bằng cách lọc bỏ bài đã xóa
             set((state) => ({
                 songs: state.songs.filter((song) => song._id !== id),
             }));
             toast.success("Song deleted successfully");
         } catch (error: any) {
             toast.error("Error deleting song")
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    addAlbum: async (formData: FormData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.post("/admin/albums", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            // Giả sử backend trả về: res.status(201).json({ album: newAlbum });
+            const newAlbum = response.data.album;
+
+            set((state) => ({
+                // Thêm album mới vào danh sách hiện có
+                albums: [...state.albums, newAlbum],
+            }));
+
+            toast.success("Album added successfully");
+        } catch (error: any) {
+            toast.error("Error adding album");
             set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
@@ -340,8 +393,6 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
                         }
                         : state.currentPlaylist,
             }));
-
-            toast.success("Added to playlist");
         } catch (error: any) {
             toast.error(
                 error.response?.data?.message || "Không thể thêm bài hát"

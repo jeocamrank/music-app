@@ -1,26 +1,23 @@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useMusicStore } from '@/stores/useMusicStore';
-import { Calendar, Trash2, ChevronLeft, ChevronRight, Pencil } from 'lucide-react'; // Import Pencil
+import { Calendar, Trash2, ChevronLeft, ChevronRight, Pencil } from 'lucide-react';
 import { useState } from 'react';
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
-import EditSongDialog from "./EditSongDialog"; // Import Edit Dialog
+import EditSongDialog from "./EditSongDialog";
 
 const ITEMS_PER_PAGE = 6;
 
 const SongsTable = () => {
+    // 👇 Store sẽ tự động báo cho component này khi songs thay đổi
     const { songs, isLoading, error, deleteSong } = useMusicStore();
     const [currentPage, setCurrentPage] = useState(1);
 
-    // State cho Delete Dialog
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [songToDelete, setSongToDelete] = useState<string | null>(null);
-
-    // State cho Edit Dialog
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedSong, setSelectedSong] = useState<any>(null);
 
-    // --- Handlers Xóa ---
     const handleDeleteClick = (id: string) => {
         setSongToDelete(id);
         setDeleteDialogOpen(true);
@@ -34,7 +31,6 @@ const SongsTable = () => {
         }
     };
 
-    // --- Handlers Sửa ---
     const handleEditClick = (song: any) => {
         setSelectedSong(song);
         setEditDialogOpen(true);
@@ -47,10 +43,10 @@ const SongsTable = () => {
         return <div className='flex justify-center py-8 text-red-400'>{error}</div>;
     }
 
-    // Pagination Logic
     const totalPages = Math.ceil(songs.length / ITEMS_PER_PAGE);
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const currentSongs = songs.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
     const handlePrevPage = () => { if (currentPage > 1) setCurrentPage(prev => prev - 1); };
     const handleNextPage = () => { if (currentPage < totalPages) setCurrentPage(prev => prev + 1); };
 
@@ -86,7 +82,6 @@ const SongsTable = () => {
 
                                     <TableCell className='text-right'>
                                         <div className='flex gap-2 justify-end'>
-                                            {/* Nút Sửa */}
                                             <Button
                                                 variant={"ghost"}
                                                 size={"sm"}
@@ -96,7 +91,6 @@ const SongsTable = () => {
                                                 <Pencil className='size-4' />
                                             </Button>
 
-                                            {/* Nút Xóa */}
                                             <Button
                                                 variant={"ghost"}
                                                 size={"sm"}
@@ -120,7 +114,6 @@ const SongsTable = () => {
                 </Table>
             </div>
 
-            {/* Pagination Controls */}
             {totalPages > 1 && (
                 <div className="flex items-center justify-between px-2">
                     <div className="flex items-center space-x-2 ml-auto">
@@ -131,7 +124,6 @@ const SongsTable = () => {
                 </div>
             )}
 
-            {/* Dialog Xóa */}
             <ConfirmDeleteDialog
                 isOpen={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
@@ -141,7 +133,6 @@ const SongsTable = () => {
                 isLoading={isLoading}
             />
 
-            {/* Dialog Sửa */}
             <EditSongDialog
                 song={selectedSong}
                 isOpen={editDialogOpen}

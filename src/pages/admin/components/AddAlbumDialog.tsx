@@ -9,14 +9,16 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { axiosInstance } from "@/lib/axios";
+import { useMusicStore } from "@/stores/useMusicStore"; // Import Store
 import { Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 
 const AddAlbumDialog = () => {
+    // 👇 Lấy hàm addAlbum và state isLoading từ store
+    const { addAlbum, isLoading } = useMusicStore();
+    
     const [albumDialogOpen, setAlbumDialogOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [newAlbum, setNewAlbum] = useState({
@@ -35,8 +37,6 @@ const AddAlbumDialog = () => {
     };
 
     const handleSubmit = async () => {
-        setIsLoading(true);
-
         try {
             if (!imageFile) {
                 return toast.error("Please upload an image");
@@ -48,24 +48,22 @@ const AddAlbumDialog = () => {
             formData.append("releaseYear", newAlbum.releaseYear.toString());
             formData.append("imageFile", imageFile);
 
-            await axiosInstance.post("/admin/albums", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+            // 👇 GỌI HÀM TỪ STORE
+            await addAlbum(formData);
 
+            // Reset form sau khi thành công
             setNewAlbum({
                 title: "",
                 artist: "",
                 releaseYear: new Date().getFullYear(),
             });
             setImageFile(null);
+            
+            // Đóng dialog
             setAlbumDialogOpen(false);
-            toast.success("Album created successfully");
+            
         } catch (error: any) {
-            toast.error("Failed to create album: " + error.message);
-        } finally {
-            setIsLoading(false);
+            console.error("Failed to add album:", error);
         }
     };
 
