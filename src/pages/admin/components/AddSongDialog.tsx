@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { axiosInstance } from '@/lib/axios';
 import { useMusicStore } from '@/stores/useMusicStore'
 import { Plus, Upload } from 'lucide-react';
 import { useRef, useState } from 'react'
@@ -17,10 +16,10 @@ interface NewSong {
 }
 
 const AddSongDialog = () => {
-
-    const { albums } = useMusicStore();
+    // 👇 Lấy hàm addSong và state isLoading từ Store
+    const { albums, addSong, isLoading } = useMusicStore();
+    
     const [songDialogOpen, setSongDialogOpen] = useState(false);
-    const [isLoading, setIsLoading] = useState(false)
 
     const [newSong, setNewSong] = useState<NewSong>({
         title: "",
@@ -38,47 +37,38 @@ const AddSongDialog = () => {
     const imageInputRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = async () => {
-        setIsLoading(true);
-
         try {
             if (!files.audio || !files.image) {
                 return toast.error("Please upload both audio and image files");
             }
 
             const formData = new FormData();
-
             formData.append("title", newSong.title);
             formData.append("artist", newSong.artist);
             formData.append("duration", newSong.duration);
             if (newSong.album && newSong.album !== "none") {
                 formData.append("albumId", newSong.album);
             }
-
             formData.append("audioFile", files.audio);
             formData.append("imageFile", files.image);
 
-            await axiosInstance.post("/admin/songs", formData, {
-                headers: {
-                    "Content-Type": "multipart/form-data"
-                }
-            });
+            // 👇 GỌI HÀM CỦA STORE
+            await addSong(formData);
 
+            // Reset form
             setNewSong({
                 title: "",
                 artist: "",
                 album: "",
                 duration: "0",
             })
-
-            setFiles({
-                audio: null,
-                image: null
-            })
-            toast.success("Song added successfully");
-        } catch (error: any) {
-            toast.error("Failed to add song: " + error.message);
-        } finally {
-            setIsLoading(false)
+            setFiles({ audio: null, image: null })
+            
+            // Đóng dialog sau khi thành công
+            setSongDialogOpen(false); 
+            
+        } catch (error) {
+            console.error("Failed to add song", error);
         }
     };
 
@@ -106,7 +96,6 @@ const AddSongDialog = () => {
                             hidden
                             onChange={(e) => setFiles((prev) => ({ ...prev, audio: e.target.files![0] }))}
                         />
-
                         <input
                             type='file'
                             accept='image/*'
@@ -115,7 +104,7 @@ const AddSongDialog = () => {
                             onChange={(e) => setFiles((prev) => ({ ...prev, image: e.target.files![0] }))}
                         />
 
-                        {/* image upload area  */}
+                        {/* Image Upload Area */}
                         <div
                             className='flex items-center justify-center p-6 border-[2px] !border-dashed !border-zinc-700 rounded-lg cursor-pointer'
                             onClick={() => imageInputRef.current?.click()}
@@ -123,7 +112,7 @@ const AddSongDialog = () => {
                             <div className='text-center'>
                                 {files.image ? (
                                     <div className='space-y-2'>
-                                        <div className='text-sm text-emerald-500'>Image slected:</div>
+                                        <div className='text-sm text-emerald-500'>Image selected:</div>
                                         <div className='text-xs text-zinc-400'>{files.image.name.slice(0, 20)}</div>
                                     </div>
                                 ) : (
@@ -132,27 +121,23 @@ const AddSongDialog = () => {
                                             <Upload className='h-6 w-6 text-zinc-400' />
                                         </div>
                                         <div className='text-sm text-zinc-400 mb-2'>Upload artwork</div>
-                                        <Button variant={"outline"} size={"sm"} className='text-xs !text-white'>
-                                            Choose File
-                                        </Button>
+                                        <Button variant={"outline"} size={"sm"} className='text-xs !text-white'>Choose File</Button>
                                     </>
                                 )}
                             </div>
                         </div>
 
-                        {/* Audio upload  */}
+                        {/* Audio Upload Area */}
                         <div className='space-y-2'>
                             <label className='text-sm font-medium !text-white'>Audio File</label>
                             <div className='flex items-center gap-2'>
                                 <Button variant={"outline"} onClick={() => audioInputRef.current?.click()} className='w-full !text-white'>
                                     {files.audio ? files.audio.name.slice(0, 20) : "Choose Audio File"}
-
                                 </Button>
                             </div>
                         </div>
 
-                        {/* other fields */}
-
+                        {/* Inputs */}
                         <div className='space-y-2'>
                             <label className='text-sm font-medium !text-white'>Title</label>
                             <Input
@@ -200,16 +185,14 @@ const AddSongDialog = () => {
                             </Select>
                         </div>
                     </div>
-
-                    <DialogFooter>
-                        <Button variant={"outline"} onClick={() => setSongDialogOpen(false)} disabled={isLoading}>
-                            Cancel
-                        </Button>
-                        <Button onClick={handleSubmit} disabled={isLoading}>
-                            {isLoading ? "Uploading..." : "Add Song"}
-                        </Button>
-                    </DialogFooter>
                 </ScrollArea>
+
+                <DialogFooter>
+                    <Button variant={"outline"} onClick={() => setSongDialogOpen(false)} disabled={isLoading}>Cancel</Button>
+                    <Button onClick={handleSubmit} disabled={isLoading}>
+                        {isLoading ? "Uploading..." : "Add Song"}
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

@@ -21,55 +21,8 @@ const updateApiToken = (token: string | null) => {
 const AuthProvider = ({ children }: { children: ReactNode }) => {
 	const [loading, setLoading] = useState(true);
 
-	const { checkAdminStatus, setUser, reset } = useAuthStore();
+	const { fetchMe, checkAdminStatus, setUser, reset } = useAuthStore();
 	const { initSocket, disconnectSocket } = useChatStore();
-	const { reset: resetMusicStore } = useMusicStore();
-
-	// useEffect(() => {
-	// 	const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-	// 		try {
-	// 			if (firebaseUser) {
-	// 				// 1. Set user vào store
-	// 				setUser({
-	// 					_id: firebaseUser.uid,
-	// 					fireBaseUid: firebaseUser.uid,
-	// 					fullName: firebaseUser.displayName || "",
-	// 					imageUrl: firebaseUser.photoURL || "",
-	// 				});
-
-	// 				// Lấy token
-	// 				const token = await firebaseUser.getIdToken();
-	// 				updateApiToken(token);
-	// 				// Check admin
-	// 				await checkAdminStatus();
-	// 				// Init socket
-	// 				initSocket(firebaseUser.uid);
-	// 				// fetch playlists
-	// 				await useMusicStore.getState().fetchUserPlaylists()
-	// 			} else {
-	// 				// === LOGOUT / GUEST ===
-	// 				updateApiToken(null);
-	// 				disconnectSocket();
-	// 				setUser(null);
-	// 				resetMusicStore();
-	// 				reset(); // reset isAdmin
-	// 			}
-	// 		} catch (error) {
-	// 			console.error("AuthProvider error:", error);
-	// 			updateApiToken(null);
-	// 			disconnectSocket();
-	// 			setUser(null);
-	// 			reset();
-	// 		} finally {
-	// 			setLoading(false);
-	// 		}
-	// 	});
-
-	// 	return () => {
-	// 		unsubscribe();
-	// 		disconnectSocket();
-	// 	};
-	// }, [checkAdminStatus, initSocket, disconnectSocket, setUser, reset]);
 
 	useEffect(() => {
 		const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -77,19 +30,14 @@ const AuthProvider = ({ children }: { children: ReactNode }) => {
 				if (firebaseUser) {
 					setLoading(true);
 
-					setUser({
-						_id: firebaseUser.uid,
-						fireBaseUid: firebaseUser.uid,
-						fullName: firebaseUser.displayName || "",
-						imageUrl: firebaseUser.photoURL || "",
-					});
-
 					const token = await firebaseUser.getIdToken(true);
 					updateApiToken(token);
 					await Promise.resolve(); // đảm bảo axios nhận token
 
 					await checkAdminStatus();
 					initSocket(firebaseUser.uid);
+
+					await fetchMe();
 
 					await Promise.all([
 						useMusicStore.getState().fetchUserPlaylists(),

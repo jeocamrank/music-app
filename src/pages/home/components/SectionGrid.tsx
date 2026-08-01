@@ -1,8 +1,10 @@
 import type { Song } from "@/types";
 import SectionGridSkeleton from "./SectionGridSkeleton";
-import { Button } from "@/components/ui/button";
 import PlayButton from "./PlayButton";
 import AddToPlaylistButton from "./AddToPlayListButton";
+import { Link } from "react-router-dom";
+import DownloadButton from "./DownloadButton";
+import { useAuthStore } from "@/stores/useAuthStore"; // 1. Import Auth Store
 
 type SectionGridProps = {
     title: string;
@@ -11,15 +13,21 @@ type SectionGridProps = {
 }
 
 const SectionGrid = ({ title, songs, isLoading }: SectionGridProps) => {
+    const { user } = useAuthStore(); // 2. Lấy thông tin user
+
     if (isLoading) return <SectionGridSkeleton />
 
     return (
-        <div className="mb-8">
+        <div className="mb-8 px-4">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl sm:text-2xl font-bold">{title}</h2>
-                <Button variant="link" className="text-sm text-zinc-400 hover:text-white">
+
+                <Link
+                    to="/music"
+                    className="text-sm text-zinc-400 hover:text-white"
+                >
                     Show all
-                </Button>
+                </Link>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -37,6 +45,9 @@ const SectionGrid = ({ title, songs, isLoading }: SectionGridProps) => {
                                     group-hover:scale-105"
                                 />
                             </div>
+
+
+                            {user?.isPremium && <DownloadButton song={song} />}
                             <AddToPlaylistButton song={song} />
                             <PlayButton song={song} />
                         </div>

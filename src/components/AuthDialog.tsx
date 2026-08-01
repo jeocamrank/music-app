@@ -10,22 +10,24 @@ import { useState } from "react";
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    GoogleAuthProvider,
-    signInWithPopup,
 } from "firebase/auth";
 import { auth } from "@/firebase/fire";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginSchema, registerSchema } from "@/schema/auth.schema.ts";
-import { z } from "zod";
+import { loginSchema, registerSchema } from "@/schema/auth.schema";
+import SignInOAuthButtons from "./SignInOAuthButtons";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { firebaseAuthErrorMessage } from "@/util/firebaseError";
 
 type Props = {
     open: boolean;
-    onOpenChange: (v: boolean) => void;
+    onOpenChange: (open: boolean) => void;
 };
 
 export default function AuthDialog({ open, onOpenChange }: Props) {
     const [mode, setMode] = useState<"login" | "register">("login");
+    const navigate = useNavigate();
 
     const schema = mode === "login" ? loginSchema : registerSchema;
 
@@ -52,30 +54,32 @@ export default function AuthDialog({ open, onOpenChange }: Props) {
 
             reset();
             onOpenChange(false);
-        } catch (err: any) {
-            alert(err.message);
+            navigate("/auth-callback");
+        } catch (error: any) {
+            const message = firebaseAuthErrorMessage(error.code);
+            toast.error(message);
         }
-    };
-
-    const handleGoogle = async () => {
-        const provider = new GoogleAuthProvider();
-        await signInWithPopup(auth, provider);
-        onOpenChange(false);
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="bg-zinc-900 text-white">
+            <DialogContent className="bg-zinc-900 text-white border border-zinc-800">
                 <DialogHeader>
                     <DialogTitle>
                         {mode === "login" ? "Đăng nhập" : "Đăng ký"}
                     </DialogTitle>
                 </DialogHeader>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+                <form
+                    onSubmit={handleSubmit(onSubmit)}
+                    className="space-y-4"
+                >
                     {/* Email */}
                     <div>
-                        <Input placeholder="Email" {...register("email")} />
+                        <Input
+                            placeholder="Email"
+                            {...register("email")}
+                        />
                         {errors.email && (
                             <p className="text-sm text-red-500 mt-1">
                                 {errors.email.message as string}
@@ -113,10 +117,16 @@ export default function AuthDialog({ open, onOpenChange }: Props) {
                         </div>
                     )}
 
-                    <Button className="w-full" type="submit" disabled={isSubmitting}>
+                    {/* Submit */}
+                    <Button
+                        type="submit"
+                        className="w-full"
+                        disabled={isSubmitting}
+                    >
                         {mode === "login" ? "Đăng nhập" : "Đăng ký"}
                     </Button>
 
+                    {/* Switch mode */}
                     <div className="text-center text-sm text-zinc-400">
                         {mode === "login" ? (
                             <>
@@ -124,7 +134,10 @@ export default function AuthDialog({ open, onOpenChange }: Props) {
                                 <button
                                     type="button"
                                     className="text-white underline"
-                                    onClick={() => setMode("register")}
+                                    onClick={() => {
+                                        reset();
+                                        setMode("register");
+                                    }}
                                 >
                                     Đăng ký
                                 </button>
@@ -135,7 +148,10 @@ export default function AuthDialog({ open, onOpenChange }: Props) {
                                 <button
                                     type="button"
                                     className="text-white underline"
-                                    onClick={() => setMode("login")}
+                                    onClick={() => {
+                                        reset();
+                                        setMode("login");
+                                    }}
                                 >
                                     Đăng nhập
                                 </button>
@@ -143,22 +159,15 @@ export default function AuthDialog({ open, onOpenChange }: Props) {
                         )}
                     </div>
 
+                    {/* Divider */}
                     <div className="flex items-center gap-2 text-zinc-500">
                         <div className="h-px flex-1 bg-zinc-700" />
                         hoặc
                         <div className="h-px flex-1 bg-zinc-700" />
                     </div>
 
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        className="w-full"
-                        onClick={handleGoogle}
-                    >
-                        {mode === "login"
-                            ? "Đăng nhập bằng Google"
-                            : "Đăng ký bằng Google"}
-                    </Button>
+                    {/* OAuth */}
+                    <SignInOAuthButtons />
                 </form>
             </DialogContent>
         </Dialog>

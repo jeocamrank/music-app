@@ -15,7 +15,8 @@ import { useMusicStore } from '@/stores/useMusicStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const CreatePlaylistDialog = () => {
-    const { createPlaylist } = useMusicStore()
+    // 1. Lấy thêm danh sách playlists từ store để đếm
+    const { createPlaylist, playlists } = useMusicStore()
     const { user } = useAuthStore()
 
     const [open, setOpen] = useState(false)
@@ -30,6 +31,16 @@ const CreatePlaylistDialog = () => {
             toast.error('Bạn cần đăng nhập để tạo playlist')
             return
         }
+
+        // --- KIỂM TRA GIỚI HẠN PLAYLIST (Logic Mới) ---
+        if (!user.isPremium && playlists.length >= 2) {
+            toast.error('Tài khoản miễn phí chỉ được tạo tối đa 2 playlist. Hãy nâng cấp Premium!', {
+                icon: '🔒',
+                duration: 4000,
+            })
+            return;
+        }
+        // ----------------------------------------------
 
         if (!title.trim()) {
             toast.error('Title is required')
@@ -55,8 +66,10 @@ const CreatePlaylistDialog = () => {
             setTitle('')
             setDescription('')
             setImageFile(null)
-        } catch (error) {
-            toast.error('Failed to create playlist')
+        } catch (error: any) {
+            // Hiển thị lỗi từ backend nếu backend cũng chặn
+            const message = error.response?.data?.message || 'Failed to create playlist'
+            toast.error(message)
         } finally {
             setCreating(false)
         }
@@ -83,7 +96,7 @@ const CreatePlaylistDialog = () => {
                 </Button>
             </DialogTrigger>
 
-            {/* Dialog */}
+            {/* Dialog Content - Giữ nguyên như cũ */}
             <DialogContent className="border border-zinc-700 bg-zinc-900 text-muted-foreground">
                 {!user ? (
                     <>
@@ -122,9 +135,7 @@ const CreatePlaylistDialog = () => {
                                 <Label>Description</Label>
                                 <Input
                                     value={description}
-                                    onChange={(e) =>
-                                        setDescription(e.target.value)
-                                    }
+                                    onChange={(e) => setDescription(e.target.value)}
                                     className="bg-zinc-800 text-white"
                                 />
                             </div>
@@ -134,9 +145,7 @@ const CreatePlaylistDialog = () => {
                                 <Input
                                     type="file"
                                     accept="image/*"
-                                    onChange={(e) =>
-                                        setImageFile(e.target.files?.[0] || null)
-                                    }
+                                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                                     className="bg-zinc-800 text-muted-foreground cursor-pointer"
                                 />
                             </div>

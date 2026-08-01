@@ -23,12 +23,17 @@ interface MusicStore {
     fetchTrendingSongs: () => Promise<void>,
     fetchStats: () => Promise<void>,
     fetchSongs: () => Promise<void>,
-    deleteSong: (id: string) => Promise<void>,
-    deleteAlbum: (id: string) => Promise<void>,
     fetchUserPlaylists: () => Promise<void>,
     fetchPlaylistsById: (id: string) => Promise<void>,
-    createPlaylist: (formData: FormData) => Promise<void>,
+    fetchShowAll: () => Promise<void>,
     addSongToPlaylist: (playlistId: string, songId: string) => Promise<void>,
+    addSong: (formData: FormData) => Promise<void>,
+    addAlbum: (formData: FormData) => Promise<void>;
+    createPlaylist: (formData: FormData) => Promise<void>,
+    deleteSong: (id: string) => Promise<void>,
+    deleteAlbum: (id: string) => Promise<void>,
+    updateSong: (id: string, formData: FormData) => Promise<void>;
+    updateAlbum: (id: string, formData: FormData) => Promise<void>;
     removeSongFromPlaylist: (playlistId: string, songId: string) => Promise<void>,
     deletePlaylist: (playlistId: string) => Promise<void>,
     reset: () => void
@@ -53,12 +58,39 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
     },
 
     fetchSongs: async () => {
+        // Tối ưu: Nếu đã có songs rồi thì không fetch lại (tránh loading khi chuyển trang)
+        if (get().songs.length > 0) return;
+
         set({ isLoading: true, error: null });
         try {
             const response = await axiosInstance.get('/songs');
             set({ songs: response.data.songs });
         } catch (error: any) {
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    addSong: async (formData: FormData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.post("/admin/songs", formData, {
+                headers: { "Content-Type": "multipart/form-data" },
+            });
+
+            // Lấy bài hát mới từ response server
+            const newSong = response.data.song;
+
+            // Cập nhật state songs bằng cách thêm bài mới vào danh sách hiện có
+            set((state) => ({
+                songs: [...state.songs, newSong],
+            }));
+
+            toast.success("Song added successfully");
+        } catch (error: any) {
+            toast.error("Error adding song");
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
@@ -68,13 +100,40 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
         set({ isLoading: true, error: null });
         try {
             await axiosInstance.delete(`/admin/songs/${id}`);
+            // Cập nhật state bằng cách lọc bỏ bài đã xóa
             set((state) => ({
                 songs: state.songs.filter((song) => song._id !== id),
             }));
             toast.success("Song deleted successfully");
         } catch (error: any) {
             toast.error("Error deleting song")
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    addAlbum: async (formData: FormData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.post("/admin/albums", formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+
+            // Giả sử backend trả về: res.status(201).json({ album: newAlbum });
+            const newAlbum = response.data.album;
+
+            set((state) => ({
+                // Thêm album mới vào danh sách hiện có
+                albums: [...state.albums, newAlbum],
+            }));
+
+            toast.success("Album added successfully");
+        } catch (error: any) {
+            toast.error("Error adding album");
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
@@ -93,7 +152,7 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
             toast.success("Album deleted successfully");
         } catch (error: any) {
             toast.error("Error deleting album")
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
@@ -112,6 +171,9 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
     },
 
     fetchAlbums: async () => {
+        // Tối ưu: Cache album
+        if (get().albums.length > 0) return;
+
         set({ isLoading: true, error: null });
         try {
             const response = await axiosInstance.get('/albums');
@@ -124,97 +186,122 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
     },
 
     fetchAlbumById: async (id: string) => {
+        // Nếu album đang xem đúng là album này rồi thì không load lại
+        if (get().currentAlbum?._id === id) return;
+
         set({ isLoading: true, error: null });
         try {
             const reponse = await axiosInstance.get(`/albums/${id}`);
             set({ currentAlbum: reponse.data.album });
         } catch (error: any) {
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
     },
 
     fetchFeaturedSongs: async () => {
+        // Tối ưu: Cache Featured Songs
+        if (get().featuredSongs.length > 0) return;
+
         set({ isLoading: true, error: null });
         try {
             const response = await axiosInstance.get('/songs/featured');
             set({ featuredSongs: response.data.songs });
         } catch (error: any) {
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
     },
 
     fetchMadeForYouSongs: async () => {
+        // Tối ưu: Cache Made For You
+        if (get().madeForYouSongs.length > 0) return;
+
         set({ isLoading: true, error: null });
         try {
             const response = await axiosInstance.get('/songs/make-for-you');
             set({ madeForYouSongs: response.data.songs });
         } catch (error: any) {
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
     },
 
     fetchTrendingSongs: async () => {
+        // Tối ưu: Cache Trending
+        if (get().trendingSongs.length > 0) return;
+
         set({ isLoading: true, error: null });
         try {
             const response = await axiosInstance.get('/songs/trending');
             set({ trendingSongs: response.data.songs });
         } catch (error: any) {
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
     },
 
     fetchUserPlaylists: async () => {
-        const token =
-            axiosInstance.defaults.headers.common["Authorization"]
-
+        const token = axiosInstance.defaults.headers.common["Authorization"];
         if (!token) {
-            // guest → không gọi API
-            set({ playlists: [], isLoading: false })
-            return
+            set({ playlists: [], isLoading: false });
+            return;
         }
 
-        set({ isLoading: true, error: null });
+        // Tối ưu: Chỉ hiện loading spinner nếu chưa có playlist nào
+        // Nếu đã có, chỉ fetch ngầm để cập nhật
+        if (get().playlists.length === 0) {
+            set({ isLoading: true, error: null });
+        }
+
         try {
             const response = await axiosInstance.get('/playlist');
             set({ playlists: response.data.playlists });
         } catch (error: any) {
             set({ error: error.message });
         } finally {
+            // Luôn tắt loading dù là fetch ngầm hay fetch thường
             set({ isLoading: false });
         }
     },
 
     fetchPlaylistsById: async (id: string) => {
-        set({ isLoading: true, error: null });
-        try {
-            const response = await axiosInstance.get(`/playlist/${id}`);
-            set({ currentPlaylist: response.data.playlist });
-        } catch (error: any) {
-            set({ error: error.response.data.message });
-        } finally {
-            set({ isLoading: false });
+        // Tối ưu: Ưu tiên lấy từ state local (Sidebar) trước
+        const { playlists } = get();
+        const localPlaylist = playlists.find(p => p._id === id);
+
+        if (localPlaylist) {
+            // Nếu có rồi, set luôn, không hiện loading
+            set({ currentPlaylist: localPlaylist });
+        } else {
+            // Nếu chưa có (link trực tiếp hoặc F5), mới hiện loading và gọi API
+            set({ isLoading: true, error: null });
+            try {
+                const response = await axiosInstance.get(`/playlist/${id}`);
+                set({ currentPlaylist: response.data.playlist });
+            } catch (error: any) {
+                set({ error: error.response?.data?.message });
+            } finally {
+                set({ isLoading: false });
+            }
         }
     },
 
     createPlaylist: async (formData: FormData) => {
         set({ isLoading: true, error: null });
         try {
-            const response = await axiosInstance.post('/playlist', formData, {
+            await axiosInstance.post('/playlist', formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
             });
-            await get().fetchUserPlaylists()
+            await get().fetchUserPlaylists();
         } catch (error: any) {
-            set({ error: error.response.data.message });
+            set({ error: error.response?.data?.message });
         } finally {
             set({ isLoading: false });
         }
@@ -227,7 +314,9 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
                 {
                     data: { songId },
                 }
-            )
+            );
+
+            // Cập nhật Optimistic UI (Cập nhật ngay lập tức không cần đợi fetch lại)
             set((state) => ({
                 playlists: state.playlists.map((pl) =>
                     pl._id === playlistId
@@ -255,15 +344,16 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
                             ),
                         }
                         : state.currentPlaylist,
-            }))
+            }));
         } catch (error) {
-            console.error("removeSongFromPlaylist error:", error)
+            console.error("removeSongFromPlaylist error:", error);
+            toast.error("Failed to remove song");
         }
     },
 
     deletePlaylist: async (playlistId) => {
         try {
-            await axiosInstance.delete(`/playlist/${playlistId}`)
+            await axiosInstance.delete(`/playlist/${playlistId}`);
 
             set((state) => ({
                 playlists: state.playlists.filter(
@@ -273,9 +363,10 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
                     state.currentPlaylist?._id === playlistId
                         ? null
                         : state.currentPlaylist,
-            }))
+            }));
         } catch (error) {
-            console.error("deletePlaylist error:", error)
+            console.error("deletePlaylist error:", error);
+            toast.error("Failed to delete playlist");
         }
     },
 
@@ -285,7 +376,7 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
                 `/playlist/${playlistId}/add-song`,
                 { songId }
             );
-            const addedSong = res.data.playlist.songs.at(-1)
+            const addedSong = res.data.playlist.songs.at(-1);
 
             set((state) => ({
                 playlists: state.playlists.map((pl) =>
@@ -301,7 +392,7 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
                             songs: [...state.currentPlaylist.songs, addedSong],
                         }
                         : state.currentPlaylist,
-            }))
+            }));
         } catch (error: any) {
             toast.error(
                 error.response?.data?.message || "Không thể thêm bài hát"
@@ -309,5 +400,78 @@ export const useMusicStore = create<MusicStore>((set, get) => ({
         }
     },
 
-    reset: () => set({ playlists: [] }),
+    fetchShowAll: async () => {
+        // Tối ưu: Nếu đã có dữ liệu đủ, không load lại
+        if (get().albums.length > 0 && get().songs.length > 0) return;
+
+        set({ isLoading: true, error: null });
+        try {
+            const [albumRes, songRes] = await Promise.all([
+                axiosInstance.get("/albums"),
+                axiosInstance.get("/songs"),
+            ]);
+
+            set({
+                albums: albumRes.data.albums,
+                songs: songRes.data.songs,
+            });
+        } catch (error: any) {
+            set({
+                error: error.response?.data?.message,
+            });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    updateSong: async (id, formData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.put(`/admin/songs/${id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            const updatedSong = response.data.song;
+
+            set((state) => ({
+                songs: state.songs.map((song) =>
+                    song._id === id ? updatedSong : song
+                ),
+            }));
+
+            toast.success("Song updated successfully");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Error updating song");
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    updateAlbum: async (id, formData) => {
+        set({ isLoading: true, error: null });
+        try {
+            const response = await axiosInstance.put(`/admin/albums/${id}`, formData, {
+                headers: { "Content-Type": "multipart/form-data" }
+            });
+
+            const updatedAlbum = response.data.album;
+
+            set((state) => ({
+                albums: state.albums.map((album) =>
+                    album._id === id ? updatedAlbum : album
+                ),
+                currentAlbum: state.currentAlbum?._id === id ? updatedAlbum : state.currentAlbum
+            }));
+
+            toast.success("Album updated successfully");
+        } catch (error: any) {
+            toast.error(error.response?.data?.message || "Error updating album");
+            set({ error: error.response?.data?.message });
+        } finally {
+            set({ isLoading: false });
+        }
+    },
+
+    reset: () => set({ playlists: [], songs: [], albums: [] }),
 }));

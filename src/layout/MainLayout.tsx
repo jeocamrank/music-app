@@ -5,8 +5,11 @@ import FriendsActivity from "./components/FriendsActivity";
 import AudioPlayer from "./components/AudioPlayer";
 import PlayBackControl from "./components/PlayBackControl";
 import { useEffect, useState } from "react";
+import FloatingChatbot from "@/pages/ai-chatbox/FloatingChatbox";
+import { useAuthStore } from "@/stores/useAuthStore"; // 1. Import store
 
 const MainLayout = () => {
+    const { user } = useAuthStore(); // 2. Lấy thông tin user
     const [isMobile, setIsMoblie] = useState(false);
 
     useEffect(() => {
@@ -33,6 +36,8 @@ const MainLayout = () => {
                 {/* Main content */}
                 <ResizablePanel defaultSize={isMobile ? 80 : 60}>
                     <Outlet />
+
+                    {user?.isPremium && <FloatingChatbot />}
                 </ResizablePanel>
 
                 {!isMobile && (

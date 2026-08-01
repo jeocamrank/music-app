@@ -3,18 +3,29 @@ import { useState } from "react"
 import { Plus } from "lucide-react"
 import PlaylistPickerDialog from "./PlaylistPickerDialog"
 import type { Song } from "@/types"
+import { useAuthStore } from "@/stores/useAuthStore"
+import { toast } from "react-hot-toast"
 
 const AddToPlaylistButton = ({ song }: { song: Song }) => {
     const [open, setOpen] = useState(false)
+    const { user } = useAuthStore()
+
+    const handleClick = (e: React.MouseEvent) => {
+        e.stopPropagation()
+
+        if (!user) {
+            toast.error("Vui lòng đăng nhập để sử dụng tính năng này")
+            return
+        }
+
+        setOpen(true)
+    }
 
     return (
         <>
             <Button
                 size="icon"
-                onClick={(e) => {
-                    e.stopPropagation()
-                    setOpen(true)
-                }}
+                onClick={handleClick}
                 className={`
                     absolute bottom-3 right-12
                     bg-green-500 hover:bg-green-400 text-black
@@ -28,11 +39,13 @@ const AddToPlaylistButton = ({ song }: { song: Song }) => {
                 <Plus className="size-5" />
             </Button>
 
-            <PlaylistPickerDialog
-                open={open}
-                onOpenChange={setOpen}
-                song={song}
-            />
+            {user && (
+                <PlaylistPickerDialog
+                    open={open}
+                    onOpenChange={setOpen}
+                    song={song}
+                />
+            )}
         </>
     )
 }

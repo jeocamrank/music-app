@@ -40,6 +40,9 @@ export interface User {
     fireBaseUid: string;
     fullName: string;
     imageUrl: string;
+    isPremium: boolean;
+    premiumExpiry: string;
+    createdAt: string;
 }
 
 export interface Playlist {

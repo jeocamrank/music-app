@@ -39,14 +39,16 @@ const DashboardStats = () => {
     return (
         <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8'>
             {statsData.map((stat) => (
-                <StatsCard
-                    key={stat.label}
-                    icon={stat.icon}
-                    label={stat.label}
-                    value={stat.value}
-                    bgColor={stat.bgColor}
-                    iconColor={stat.iconColor}
-                />
+                // Thêm transition và hover effect vào container của StatsCard (hoặc chỉnh trực tiếp trong StatsCard)
+                <div key={stat.label} className="transition-all duration-300 hover:scale-[1.02]">
+                    <StatsCard
+                        icon={stat.icon}
+                        label={stat.label}
+                        value={stat.value}
+                        bgColor={stat.bgColor}
+                        iconColor={stat.iconColor}
+                    />
+                </div>
             ))}
         </div>
     )
